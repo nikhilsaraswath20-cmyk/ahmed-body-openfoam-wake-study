@@ -1,112 +1,75 @@
-# Ahmed Bluff Body CFD Validation
-The purpose of this repo is to serve as a starting point for further automotive/motorsport CFD or as a resource for CFD code validation. The Ahmed bluff body geometry is included so anyone can use it in their simulations. If you would like to add a validation case, please open a pull request and I'll add it! Thanks!
-<center><p><img src="docs/ahmed.gif"></p></center>
+# Ahmed Body Aerodynamic Wake Study (OpenFOAM)
 
-### Current results
+Independent CFD study of flow separation and wake structure over the Ahmed body (25° slant), built to close a specific tooling gap identified during my UK aerodynamics job search: hands-on OpenFOAM experience, alongside my existing ANSYS Fluent background from my MSc thesis.
 
-| case_id | case directory | decklid angle | solver | turbulence model | c<sub>d</sub> | c<sub>d</sub> error | c<sub>l</sub> | c<sub>l</sub> error |
-| --- | :--- | --- | --- | --- | --- | --- | --- | --- |
-| 1-A | openfoam_rans | 25 | simpleFoam | RAS - kOmegaSST | 0.299 | 0.000 | 0.339 | -0.006 |
-| 1-B | openfoam_rans | 35 | simpleFoam | RAS - kOmegaSST | | | | |
-| 2-A | openfoam_les | 25 | pisoFoam | LES - SpalartAllmarasDDES | | | | | 
-| 2-B | openfoam_les | 35 | pisoFoam | LES - SpalartAllmarasDDES | | | | |
-* c_d and c_l values are calculated by averaging the last 50 time steps for rans case
+## Background
 
-<b>Mesh properties by case </b>
-| case_id | cell count | y+ min | y+ max | y+ mean |  snappyHexMeshDict |
-| --- | --- | --- | --- | --- | --- |
-| 1-A | 8,250,693 | 0.313 | 340.130 | 13.244 | snappyHexMeshDict_1A |
-| 1-B | | | | | snappyHexMeshDict_1B |
-| 2-A | | | | | snappyHexMeshDict_2A |
-| 2-B | | | | | snappyHexMeshDict_2B |
-* y+ values are for ahmed-body only
+My MSc thesis at Cranfield University characterised bluff body wake topology and flow separation using experimental wind tunnel testing (four-hole Cobra probe, continuous traverse system, Cranfield 8×4 facility) alongside RANS/URANS CFD in ANSYS Fluent. This project extends that same physical problem — bluff body separation and wake formation — into open-source tooling, using the Ahmed body as a well-documented benchmark case with extensive published reference data.
 
+The goal was deliberately narrow: build real, defensible OpenFOAM competency (meshing with snappyHexMesh, running simpleFoam, post-processing in ParaView) rather than chase a polished result. The mesh sensitivity finding below is the actual output of that goal.
 
-### Existing results
-<table style="width:100%">
-  <tr>
-    <td>type</td>
-    <td>decklid angle</td>
-    <td>c<sub>d</sub></td>
-    <td>c<sub>l</sub></td>
-    <td>solver</td>
-    <td>source</td>
-  </tr>
-  <tr>
-    <td>exp</td>
-    <th rowspan="7">25</th>
-    <td>0.299</td>
-    <td>0.345</td>
-    <td>---</td>
-    <th rowspan="11"><a href="https://online.tugraz.at/tug_online/voe_main2.getVollText?pDocumentNr=81599">link</a></th>
-  </tr>
-  <tr>
-    <th rowspan="6">cfd</th>
-    <td>0.300</td>
-    <td>0.316</td>
-    <th rowspan="6">simpleFoam</th>
-  </tr>
-  <tr>
-    <td>0.266</td>
-    <td>0.325</td>
-  </tr>
-  <tr>
-    <td>0.274</td>
-    <td>0.330</td>
-  </tr>
-  <tr>
-    <td>0.250</td>
-    <td>0.306</td>
-  </tr>
-  <tr>
-    <td>0.260</td>
-    <td>0.305</td>
-  </tr>
-  <tr>
-    <td>0.301</td>
-    <td>0.307</td>
-  </tr>
-  <tr>
-    <td>exp</td>
-    <th rowspan="4">35</td>
-    <td>0.279</td>
-    <td>0.004</td>
-    <td>---</td>
-  <tr>
-    <th rowspan="3">cfd</th>
-    <td>0.313</td>
-    <td>0.212</td>
-    <th rowspan="3">simpleFoam</th>
-  </tr>
-  <tr>
-    <td>0.292</td>
-    <td>0.156</td>
-  </tr>
-  <tr>
-    <td>0.247</td>
-    <td>0.159</td>
-  </tr>
-  <tr>
-    <th rowspan="4">cfd</th>
-    <td align="center">20</td>
-    <td>0.262</td>
-    <td>0.284</td>
-    <th rowspan="4">Ansys Fluent</th>
-    <th rowspan="4"><a href="http://www.iosrjournals.org/iosr-jmce/papers/vol12-issue4/Version-3/M012438794.pdf">link</a></th>
-  </tr>
-  <tr>
-    <td align="center">30</td>
-    <td>0.298</td>
-    <td>0.348</td>
-  </tr>
-  <tr>
-    <td align="center">35</td>
-    <td>0.295</td>
-    <td>0.206</td>
-  </tr>
-  <tr>
-    <td align="center">40</td>
-    <td>0.250</td>
-    <td>0.008</td>
-  </tr>
-</table>
+Case files adapted from [nathanrooy/ahmed-bluff-body-cfd](https://github.com/nathanrooy/ahmed-bluff-body-cfd), updated for OpenFOAM 13 compatibility.
+
+## Setup
+
+- **Solver:** simpleFoam (steady-state, incompressible RANS)
+- **Turbulence model:** k-omega SST
+- **Meshing:** snappyHexMesh, coarsened for laptop-scale hardware (16GB RAM, no HPC access)
+- **Geometry:** Ahmed body, 25° slant configuration
+- **Environment:** WSL2 (Ubuntu 22.04) on Windows, OpenFOAM 13, ParaView 5.10
+
+## Results
+
+**Converged Cd = 0.393** after 500 iterations (fully flat residuals, converged to 1e-06–1e-08 range).
+
+![Cd convergence history](ahmed_body_cd_convergence.png)
+
+### Mesh
+
+Refinement concentrated at the body surface and in three nested wake refinement zones, coarsened from the reference case's workstation-scale settings to fit available hardware.
+
+![Mesh refinement near body](ahmed_body_mesh_refinement.png)
+
+### Flow field
+
+Pressure field along the body centreline, showing the front stagnation point and separation onset at the slant break:
+
+![Pressure field, side view](ahmed_body_pressure_side.png)
+
+Velocity magnitude, full side profile:
+
+![Velocity magnitude, side view](ahmed_body_velocity_side.png)
+
+Close-up of the slant separation and wake recirculation zone:
+
+![Velocity magnitude wake detail](ahmed_body_wake_detail_velocity.png)
+
+## Honest assessment: the mesh sensitivity finding
+
+Published Ahmed body (25° slant) Cd values sit around 0.28-0.30. My result of 0.393 is a real overprediction, and I traced it rather than reporting the number in isolation.
+
+y+ diagnostics on the body surface:
+
+| Patch | min y+ | max y+ | average y+ |
+|---|---|---|---|
+| ahmed_body | 39.8 | 1354.8 | 181.0 |
+
+k-omega SST wall functions are formulated for roughly y+ 30-300. The average sits inside that range, but the **maximum of 1354** -- almost certainly concentrated on the slant, where separation occurs -- means the wall function breaks down precisely where it matters most for drag prediction. This is the primary driver of the Cd overprediction, not a modelling error elsewhere.
+
+**Next step:** finer near-wall mesh resolution on the slant (targeting y+ < 300 across the full body surface) or a low-Reynolds turbulence treatment. Not pursued further here given hardware constraints, but understood and documented as the clear path to closing the gap with published values.
+
+## What this demonstrates
+
+- OpenFOAM meshing (snappyHexMesh) and solving (simpleFoam) workflow, independently built and debugged, including resolving OpenFOAM 7 to 13 compatibility issues in the case files
+- Mesh sensitivity analysis and y+ diagnosis, not just running a solver to completion
+- Direct continuity with experimental wind tunnel methodology from MSc thesis work
+
+## Files
+
+- `plot_convergence.py` -- Python script generating the Cd convergence plot from `forceCoeffs.dat`
+- `*.png` -- result images (mesh, pressure/velocity fields, convergence plot)
+
+---
+*Nikhil Saraswath Gopinath -- MSc Aerospace Dynamics, Cranfield University*
+ 
+  
